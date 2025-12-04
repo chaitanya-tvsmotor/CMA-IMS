@@ -24,6 +24,9 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<VendorOrder> VendorOrders { get; set; }
     public DbSet<VendorOrderItem> VendorOrderItems { get; set; }
+    public DbSet<Employee> Employees { get; set; }
+    public DbSet<Leave> Leaves { get; set; }
+    public DbSet<SalaryPayment> SalaryPayments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -188,6 +191,52 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
                 .WithMany()
                 .HasForeignKey(voi => voi.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure Employee
+        modelBuilder.Entity<Employee>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.EmployeeCode).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.Phone).HasMaxLength(20);
+            entity.Property(e => e.MonthlySalary).HasPrecision(18, 2);
+        });
+
+        // Configure Agent-Employee relationship
+        modelBuilder.Entity<Agent>(entity =>
+        {
+            entity.HasOne(a => a.Employee)
+                .WithMany()
+                .HasForeignKey(a => a.EmployeeId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure Leave
+        modelBuilder.Entity<Leave>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.HasOne(l => l.Employee)
+                .WithMany(e => e.Leaves)
+                .HasForeignKey(l => l.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure SalaryPayment
+        modelBuilder.Entity<SalaryPayment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.Bonus).HasPrecision(18, 2);
+            entity.Property(e => e.Deductions).HasPrecision(18, 2);
+            entity.Property(e => e.NetAmount).HasPrecision(18, 2);
+            
+            entity.HasOne(sp => sp.Employee)
+                .WithMany(e => e.SalaryPayments)
+                .HasForeignKey(sp => sp.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

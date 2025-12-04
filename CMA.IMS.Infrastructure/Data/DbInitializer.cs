@@ -12,7 +12,7 @@ public static class DbInitializer
         await context.Database.EnsureCreatedAsync();
 
         // Seed roles
-        string[] roles = { "Admin", "Manager", "Viewer" };
+        string[] roles = { "Admin", "Manager", "Supervisor", "MarketingAgent", "Accountant", "Viewer" };
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
@@ -98,6 +98,20 @@ public static class DbInitializer
                 new Customer { Name = "Metro Mart", Email = "sales@metromart.com", Phone = "7778889999", Company = "Metro Mart Ltd" }
             };
             await context.Customers.AddRangeAsync(customers);
+            await context.SaveChangesAsync();
+        }
+
+        if (!await context.Employees.AnyAsync())
+        {
+            var employees = new List<Employee>
+            {
+                new Employee { Name = "John Smith", EmployeeCode = "EMP001", Email = "john@cma.com", Phone = "1234567890", EmployeeType = EmployeeType.Manager, MonthlySalary = 80000, JoiningDate = DateTime.UtcNow.AddYears(-2) },
+                new Employee { Name = "Jane Supervisor", EmployeeCode = "EMP002", Email = "jane@cma.com", Phone = "2345678901", EmployeeType = EmployeeType.Supervisor, MonthlySalary = 60000, JoiningDate = DateTime.UtcNow.AddYears(-1) },
+                new Employee { Name = "Mike Worker", EmployeeCode = "EMP003", Email = "mike@cma.com", Phone = "3456789012", EmployeeType = EmployeeType.Worker, MonthlySalary = 30000, JoiningDate = DateTime.UtcNow.AddMonths(-6) },
+                new Employee { Name = "Sarah Driver", EmployeeCode = "EMP004", Email = "sarah@cma.com", Phone = "4567890123", EmployeeType = EmployeeType.Driver, MonthlySalary = 35000, JoiningDate = DateTime.UtcNow.AddMonths(-8) },
+                new Employee { Name = "Bob Accountant", EmployeeCode = "EMP005", Email = "bob@cma.com", Phone = "5678901234", EmployeeType = EmployeeType.Accountant, MonthlySalary = 50000, JoiningDate = DateTime.UtcNow.AddMonths(-4) }
+            };
+            await context.Employees.AddRangeAsync(employees);
             await context.SaveChangesAsync();
         }
     }
