@@ -1,0 +1,52 @@
+@page "/sizes/create"
+@using CMA.IMS.Core.Entities
+@using CMA.IMS.Core.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@inject IRepository<Size> SizeRepository
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Manager")]
+
+<PageTitle>Create Size - CMA IMS</PageTitle>
+
+<h1>Create Size</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <EditForm Model="@size" OnValidSubmit="@HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <InputText id="name" class="form-control" @bind-Value="size.Name" />
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <InputText id="description" class="form-control" @bind-Value="size.Description" />
+            </div>
+
+            <div class="mb-3 form-check">
+                <InputCheckbox id="isActive" class="form-check-input" @bind-Value="size.IsActive" />
+                <label class="form-check-label" for="isActive">
+                    Active
+                </label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="/sizes" class="btn btn-secondary">Cancel</a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private Size size = new Size { IsActive = true };
+
+    private async Task HandleValidSubmit()
+    {
+        await SizeRepository.AddAsync(size);
+        Navigation.NavigateTo("/sizes");
+    }
+}
