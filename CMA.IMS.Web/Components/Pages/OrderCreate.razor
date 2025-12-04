@@ -30,12 +30,12 @@
 
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="buyer" class="form-label">Buyer</label>
-                    <InputSelect id="buyer" class="form-select" @bind-Value="order.BuyerId">
-                        <option value="">-- Select Buyer --</option>
-                        @foreach (var buyer in buyers)
+                    <label for="customer" class="form-label">Customer</label>
+                    <InputSelect id="customer" class="form-select" @bind-Value="order.CustomerId">
+                        <option value="">-- Select Customer --</option>
+                        @foreach (var customer in customers)
                         {
-                            <option value="@buyer.Id">@buyer.Name</option>
+                            <option value="@customer.Id">@customer.Name</option>
                         }
                     </InputSelect>
                 </div>
@@ -75,11 +75,11 @@
         OrderNumber = $"ORD-{DateTime.Now:yyyyMMddHHmmss}",
         Status = OrderStatus.Pending
     };
-    private List<Buyer> buyers = new();
+    private List<Customer> customers = new();
 
     protected override async Task OnInitializedAsync()
     {
-        buyers = await DbContext.Buyers.Where(b => b.IsActive).ToListAsync();
+        customers = await DbContext.Customers.Where(b => b.IsActive).ToListAsync();
     }
 
     private async Task HandleValidSubmit()

@@ -1,16 +1,16 @@
-@page "/buyers/edit/{id:int}"
+@page "/customers/edit/{id:int}"
 @using CMA.IMS.Core.Entities
 @using CMA.IMS.Core.Interfaces
 @using Microsoft.AspNetCore.Authorization
-@inject IRepository<Buyer> BuyerRepository
+@inject IRepository<Customer> CustomerRepository
 @inject NavigationManager Navigation
 @attribute [Authorize(Roles = "Admin,Manager")]
 
-<PageTitle>Edit Buyer - CMA IMS</PageTitle>
+<PageTitle>Edit Customer - CMA IMS</PageTitle>
 
-<h1>Edit Buyer</h1>
+<h1>Edit Customer</h1>
 
-@if (buyer == null)
+@if (customer == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -18,37 +18,37 @@ else
 {
     <div class="row">
         <div class="col-md-6">
-            <EditForm Model="@buyer" OnValidSubmit="@HandleValidSubmit">
+            <EditForm Model="@customer" OnValidSubmit="@HandleValidSubmit">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
                 <div class="mb-3">
                     <label for="name" class="form-label">Name</label>
-                    <InputText id="name" class="form-control" @bind-Value="buyer.Name" />
+                    <InputText id="name" class="form-control" @bind-Value="customer.Name" />
                 </div>
 
                 <div class="mb-3">
                     <label for="company" class="form-label">Company</label>
-                    <InputText id="company" class="form-control" @bind-Value="buyer.Company" />
+                    <InputText id="company" class="form-control" @bind-Value="customer.Company" />
                 </div>
 
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
-                    <InputText id="email" type="email" class="form-control" @bind-Value="buyer.Email" />
+                    <InputText id="email" type="email" class="form-control" @bind-Value="customer.Email" />
                 </div>
 
                 <div class="mb-3">
                     <label for="phone" class="form-label">Phone</label>
-                    <InputText id="phone" class="form-control" @bind-Value="buyer.Phone" />
+                    <InputText id="phone" class="form-control" @bind-Value="customer.Phone" />
                 </div>
 
                 <div class="mb-3">
                     <label for="address" class="form-label">Address</label>
-                    <InputTextArea id="address" class="form-control" @bind-Value="buyer.Address" rows="3" />
+                    <InputTextArea id="address" class="form-control" @bind-Value="customer.Address" rows="3" />
                 </div>
 
                 <div class="mb-3 form-check">
-                    <InputCheckbox id="isActive" class="form-check-input" @bind-Value="buyer.IsActive" />
+                    <InputCheckbox id="isActive" class="form-check-input" @bind-Value="customer.IsActive" />
                     <label class="form-check-label" for="isActive">
                         Active
                     </label>
@@ -56,7 +56,7 @@ else
 
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">Update</button>
-                    <a href="/buyers" class="btn btn-secondary">Cancel</a>
+                    <a href="/customers" class="btn btn-secondary">Cancel</a>
                 </div>
             </EditForm>
         </div>
@@ -67,24 +67,24 @@ else
     [Parameter]
     public int Id { get; set; }
 
-    private Buyer? buyer;
+    private Customer? customer;
 
     protected override async Task OnInitializedAsync()
     {
-        buyer = await BuyerRepository.GetByIdAsync(Id);
-        if (buyer == null)
+        customer = await CustomerRepository.GetByIdAsync(Id);
+        if (customer == null)
         {
-            Navigation.NavigateTo("/buyers");
+            Navigation.NavigateTo("/customers");
         }
     }
 
     private async Task HandleValidSubmit()
     {
-        if (buyer != null)
+        if (customer != null)
         {
-            buyer.ModifiedDate = DateTime.UtcNow;
-            await BuyerRepository.UpdateAsync(buyer);
-            Navigation.NavigateTo("/buyers");
+            customer.ModifiedDate = DateTime.UtcNow;
+            await CustomerRepository.UpdateAsync(customer);
+            Navigation.NavigateTo("/customers");
         }
     }
 }

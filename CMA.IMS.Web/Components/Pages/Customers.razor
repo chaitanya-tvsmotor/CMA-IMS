@@ -1,27 +1,27 @@
-@page "/buyers"
+@page "/customers"
 @using CMA.IMS.Core.Entities
 @using CMA.IMS.Core.Interfaces
 @using Microsoft.AspNetCore.Authorization
-@inject IRepository<Buyer> BuyerRepository
+@inject IRepository<Customer> CustomerRepository
 @inject NavigationManager Navigation
 @attribute [Authorize]
 
-<PageTitle>Buyers - CMA IMS</PageTitle>
+<PageTitle>Customers - CMA IMS</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Buyers</h1>
-    <a href="/buyers/create" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Add New Buyer
+    <h1>Customers</h1>
+    <a href="/customers/create" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Add New Customer
     </a>
 </div>
 
-@if (buyers == null)
+@if (customers == null)
 {
     <p><em>Loading...</em></p>
 }
-else if (!buyers.Any())
+else if (!customers.Any())
 {
-    <div class="alert alert-info">No buyers found. Create your first buyer!</div>
+    <div class="alert alert-info">No customers found. Create your first customer!</div>
 }
 else
 {
@@ -38,15 +38,15 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var buyer in buyers)
+                @foreach (var customer in customers)
                 {
                     <tr>
-                        <td>@buyer.Name</td>
-                        <td>@buyer.Company</td>
-                        <td>@buyer.Email</td>
-                        <td>@buyer.Phone</td>
+                        <td>@customer.Name</td>
+                        <td>@customer.Company</td>
+                        <td>@customer.Email</td>
+                        <td>@customer.Phone</td>
                         <td>
-                            @if (buyer.IsActive)
+                            @if (customer.IsActive)
                             {
                                 <span class="badge bg-success">Active</span>
                             }
@@ -56,10 +56,10 @@ else
                             }
                         </td>
                         <td>
-                            <a href="/buyers/edit/@buyer.Id" class="btn btn-sm btn-warning">
+                            <a href="/customers/edit/@customer.Id" class="btn btn-sm btn-warning">
                                 <i class="bi bi-pencil"></i> Edit
                             </a>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteBuyer(buyer.Id)">
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteCustomer(customer.Id)">
                                 <i class="bi bi-trash"></i> Delete
                             </button>
                         </td>
@@ -71,25 +71,25 @@ else
 }
 
 @code {
-    private List<Buyer>? buyers;
+    private List<Customer>? customers;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadBuyers();
+        await LoadCustomers();
     }
 
-    private async Task LoadBuyers()
+    private async Task LoadCustomers()
     {
-        var allBuyers = await BuyerRepository.GetAllAsync();
-        buyers = allBuyers.ToList();
+        var allCustomers = await CustomerRepository.GetAllAsync();
+        customers = allCustomers.ToList();
     }
 
-    private async Task DeleteBuyer(int id)
+    private async Task DeleteCustomer(int id)
     {
-        if (await BuyerRepository.ExistsAsync(id))
+        if (await CustomerRepository.ExistsAsync(id))
         {
-            await BuyerRepository.DeleteAsync(id);
-            await LoadBuyers();
+            await CustomerRepository.DeleteAsync(id);
+            await LoadCustomers();
         }
     }
 }

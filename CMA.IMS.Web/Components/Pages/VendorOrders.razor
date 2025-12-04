@@ -1,4 +1,4 @@
-@page "/orders"
+@page "/vendor-orders"
 @using CMA.IMS.Core.Entities
 @using CMA.IMS.Infrastructure.Data
 @using Microsoft.AspNetCore.Authorization
@@ -7,22 +7,22 @@
 @inject NavigationManager Navigation
 @attribute [Authorize]
 
-<PageTitle>Orders - CMA IMS</PageTitle>
+<PageTitle>Vendor Orders - CMA IMS</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Orders</h1>
-    <a href="/orders/create" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Create New Order
+    <h1>Vendor Orders (Purchase Orders)</h1>
+    <a href="/vendor-orders/create" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Create New Vendor Order
     </a>
 </div>
 
-@if (orders == null)
+@if (vendorOrders == null)
 {
     <p><em>Loading...</em></p>
 }
-else if (!orders.Any())
+else if (!vendorOrders.Any())
 {
-    <div class="alert alert-info">No orders found. Create your first order!</div>
+    <div class="alert alert-info">No vendor orders found. Create your first vendor order!</div>
 }
 else
 {
@@ -31,49 +31,48 @@ else
             <thead>
                 <tr>
                     <th>Order Number</th>
-                    <th>Customer</th>
+                    <th>Vendor</th>
                     <th>Order Date</th>
+                    <th>Expected Delivery</th>
                     <th>Total Amount</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var order in orders)
+                @foreach (var order in vendorOrders)
                 {
                     <tr>
                         <td>@order.OrderNumber</td>
-                        <td>@order.Customer.Name</td>
+                        <td>@order.Vendor.Name</td>
                         <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                        <td>@(order.ExpectedDeliveryDate?.ToString("MMM dd, yyyy") ?? "Not set")</td>
                         <td>@order.TotalAmount.ToString("C")</td>
                         <td>
                             @switch (order.Status)
                             {
-                                case OrderStatus.Pending:
+                                case VendorOrderStatus.Pending:
                                     <span class="badge bg-warning">@order.Status</span>
                                     break;
-                                case OrderStatus.Confirmed:
+                                case VendorOrderStatus.Confirmed:
                                     <span class="badge bg-info">@order.Status</span>
                                     break;
-                                case OrderStatus.Processing:
+                                case VendorOrderStatus.Shipped:
                                     <span class="badge bg-primary">@order.Status</span>
                                     break;
-                                case OrderStatus.Shipped:
+                                case VendorOrderStatus.Received:
                                     <span class="badge bg-success">@order.Status</span>
                                     break;
-                                case OrderStatus.Delivered:
-                                    <span class="badge bg-success">@order.Status</span>
-                                    break;
-                                case OrderStatus.Cancelled:
+                                case VendorOrderStatus.Cancelled:
                                     <span class="badge bg-danger">@order.Status</span>
                                     break;
                             }
                         </td>
                         <td>
-                            <a href="/orders/edit/@order.Id" class="btn btn-sm btn-warning">
+                            <a href="/vendor-orders/edit/@order.Id" class="btn btn-sm btn-warning">
                                 <i class="bi bi-pencil"></i> Edit
                             </a>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteOrder(order.Id)">
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteVendorOrder(order.Id)">
                                 <i class="bi bi-trash"></i> Delete
                             </button>
                         </td>
@@ -85,29 +84,29 @@ else
 }
 
 @code {
-    private List<Order>? orders;
+    private List<VendorOrder>? vendorOrders;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadOrders();
+        await LoadVendorOrders();
     }
 
-    private async Task LoadOrders()
+    private async Task LoadVendorOrders()
     {
-        orders = await DbContext.Orders
-            .Include(o => o.Customer)
-            .OrderByDescending(o => o.OrderDate)
+        vendorOrders = await DbContext.VendorOrders
+            .Include(vo => vo.Vendor)
+            .OrderByDescending(vo => vo.OrderDate)
             .ToListAsync();
     }
 
-    private async Task DeleteOrder(int id)
+    private async Task DeleteVendorOrder(int id)
     {
-        var order = await DbContext.Orders.FindAsync(id);
+        var order = await DbContext.VendorOrders.FindAsync(id);
         if (order != null)
         {
-            DbContext.Orders.Remove(order);
+            DbContext.VendorOrders.Remove(order);
             await DbContext.SaveChangesAsync();
-            await LoadOrders();
+            await LoadVendorOrders();
         }
     }
 }

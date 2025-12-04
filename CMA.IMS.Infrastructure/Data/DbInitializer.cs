@@ -77,14 +77,27 @@ public static class DbInitializer
             await context.SaveChangesAsync();
         }
 
-        if (!await context.Buyers.AnyAsync())
+        if (!await context.Agents.AnyAsync())
         {
-            var buyers = new List<Buyer>
+            var agents = new List<Agent>
             {
-                new Buyer { Name = "ABC Retail Store", Email = "contact@abcretail.com", Phone = "1112223333", Company = "ABC Retail" },
-                new Buyer { Name = "XYZ Supermarket", Email = "info@xyzsupermarket.com", Phone = "4445556666", Company = "XYZ Corp" }
+                new Agent { Name = "John Agent", Email = "john.agent@cma.com", Phone = "1231231234", EmployeeCode = "AG001" },
+                new Agent { Name = "Sarah Agent", Email = "sarah.agent@cma.com", Phone = "3213213210", EmployeeCode = "AG002" }
             };
-            await context.Buyers.AddRangeAsync(buyers);
+            await context.Agents.AddRangeAsync(agents);
+            await context.SaveChangesAsync();
+        }
+
+        if (!await context.Customers.AnyAsync())
+        {
+            var agent = await context.Agents.FirstOrDefaultAsync();
+            var customers = new List<Customer>
+            {
+                new Customer { Name = "ABC Retail Store", Email = "contact@abcretail.com", Phone = "1112223333", Company = "ABC Retail", AgentId = agent?.Id },
+                new Customer { Name = "XYZ Supermarket", Email = "info@xyzsupermarket.com", Phone = "4445556666", Company = "XYZ Corp", AgentId = agent?.Id },
+                new Customer { Name = "Metro Mart", Email = "sales@metromart.com", Phone = "7778889999", Company = "Metro Mart Ltd" }
+            };
+            await context.Customers.AddRangeAsync(customers);
             await context.SaveChangesAsync();
         }
     }

@@ -18,9 +18,12 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductVendor> ProductVendors { get; set; }
     public DbSet<ProductSize> ProductSizes { get; set; }
-    public DbSet<Buyer> Buyers { get; set; }
+    public DbSet<Customer> Customers { get; set; }
+    public DbSet<Agent> Agents { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<VendorOrder> VendorOrders { get; set; }
+    public DbSet<VendorOrderItem> VendorOrderItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -96,13 +99,28 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Configure Buyer
-        modelBuilder.Entity<Buyer>(entity =>
+        // Configure Customer
+        modelBuilder.Entity<Customer>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.Phone).HasMaxLength(20);
+            
+            entity.HasOne(c => c.Agent)
+                .WithMany(a => a.Customers)
+                .HasForeignKey(c => c.AgentId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure Agent
+        modelBuilder.Entity<Agent>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.Phone).HasMaxLength(20);
+            entity.Property(e => e.EmployeeCode).HasMaxLength(50);
         });
 
         // Configure Order
@@ -112,10 +130,15 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             entity.Property(e => e.OrderNumber).IsRequired().HasMaxLength(50);
             entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
             
-            entity.HasOne(o => o.Buyer)
-                .WithMany(b => b.Orders)
-                .HasForeignKey(o => o.BuyerId)
+            entity.HasOne(o => o.Customer)
+                .WithMany(c => c.Orders)
+                .HasForeignKey(o => o.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(o => o.Agent)
+                .WithMany(a => a.Orders)
+                .HasForeignKey(o => o.AgentId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure OrderItem
@@ -133,6 +156,37 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             entity.HasOne(oi => oi.Product)
                 .WithMany(p => p.OrderItems)
                 .HasForeignKey(oi => oi.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure VendorOrder
+        modelBuilder.Entity<VendorOrder>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.OrderNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+            
+            entity.HasOne(vo => vo.Vendor)
+                .WithMany(v => v.VendorOrders)
+                .HasForeignKey(vo => vo.VendorId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure VendorOrderItem
+        modelBuilder.Entity<VendorOrderItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
+            
+            entity.HasOne(voi => voi.VendorOrder)
+                .WithMany(vo => vo.VendorOrderItems)
+                .HasForeignKey(voi => voi.VendorOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(voi => voi.Product)
+                .WithMany()
+                .HasForeignKey(voi => voi.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

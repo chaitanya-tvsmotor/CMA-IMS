@@ -1,0 +1,85 @@
+@page "/agents/edit/{id:int}"
+@using CMA.IMS.Core.Entities
+@using CMA.IMS.Core.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@inject IRepository<Agent> AgentRepository
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Manager")]
+
+<PageTitle>Edit Agent - CMA IMS</PageTitle>
+
+<h1>Edit Marketing Agent</h1>
+
+@if (agent == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-6">
+            <EditForm Model="@agent" OnValidSubmit="@HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <InputText id="name" class="form-control" @bind-Value="agent.Name" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="employeeCode" class="form-label">Employee Code</label>
+                    <InputText id="employeeCode" class="form-control" @bind-Value="agent.EmployeeCode" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <InputText id="email" type="email" class="form-control" @bind-Value="agent.Email" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone</label>
+                    <InputText id="phone" class="form-control" @bind-Value="agent.Phone" />
+                </div>
+
+                <div class="mb-3 form-check">
+                    <InputCheckbox id="isActive" class="form-check-input" @bind-Value="agent.IsActive" />
+                    <label class="form-check-label" for="isActive">
+                        Active
+                    </label>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <a href="/agents" class="btn btn-secondary">Cancel</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Agent? agent;
+
+    protected override async Task OnInitializedAsync()
+    {
+        agent = await AgentRepository.GetByIdAsync(Id);
+        if (agent == null)
+        {
+            Navigation.NavigateTo("/agents");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (agent != null)
+        {
+            agent.ModifiedDate = DateTime.UtcNow;
+            await AgentRepository.UpdateAsync(agent);
+            Navigation.NavigateTo("/agents");
+        }
+    }
+}

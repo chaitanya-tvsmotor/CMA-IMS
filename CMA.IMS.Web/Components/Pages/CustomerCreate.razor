@@ -1,48 +1,48 @@
-@page "/buyers/create"
+@page "/customers/create"
 @using CMA.IMS.Core.Entities
 @using CMA.IMS.Core.Interfaces
 @using Microsoft.AspNetCore.Authorization
-@inject IRepository<Buyer> BuyerRepository
+@inject IRepository<Customer> CustomerRepository
 @inject NavigationManager Navigation
 @attribute [Authorize(Roles = "Admin,Manager")]
 
-<PageTitle>Create Buyer - CMA IMS</PageTitle>
+<PageTitle>Create Customer - CMA IMS</PageTitle>
 
-<h1>Create Buyer</h1>
+<h1>Create Customer</h1>
 
 <div class="row">
     <div class="col-md-6">
-        <EditForm Model="@buyer" OnValidSubmit="@HandleValidSubmit">
+        <EditForm Model="@customer" OnValidSubmit="@HandleValidSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
             <div class="mb-3">
                 <label for="name" class="form-label">Name</label>
-                <InputText id="name" class="form-control" @bind-Value="buyer.Name" />
+                <InputText id="name" class="form-control" @bind-Value="customer.Name" />
             </div>
 
             <div class="mb-3">
                 <label for="company" class="form-label">Company</label>
-                <InputText id="company" class="form-control" @bind-Value="buyer.Company" />
+                <InputText id="company" class="form-control" @bind-Value="customer.Company" />
             </div>
 
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <InputText id="email" type="email" class="form-control" @bind-Value="buyer.Email" />
+                <InputText id="email" type="email" class="form-control" @bind-Value="customer.Email" />
             </div>
 
             <div class="mb-3">
                 <label for="phone" class="form-label">Phone</label>
-                <InputText id="phone" class="form-control" @bind-Value="buyer.Phone" />
+                <InputText id="phone" class="form-control" @bind-Value="customer.Phone" />
             </div>
 
             <div class="mb-3">
                 <label for="address" class="form-label">Address</label>
-                <InputTextArea id="address" class="form-control" @bind-Value="buyer.Address" rows="3" />
+                <InputTextArea id="address" class="form-control" @bind-Value="customer.Address" rows="3" />
             </div>
 
             <div class="mb-3 form-check">
-                <InputCheckbox id="isActive" class="form-check-input" @bind-Value="buyer.IsActive" />
+                <InputCheckbox id="isActive" class="form-check-input" @bind-Value="customer.IsActive" />
                 <label class="form-check-label" for="isActive">
                     Active
                 </label>
@@ -50,18 +50,18 @@
 
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Save</button>
-                <a href="/buyers" class="btn btn-secondary">Cancel</a>
+                <a href="/customers" class="btn btn-secondary">Cancel</a>
             </div>
         </EditForm>
     </div>
 </div>
 
 @code {
-    private Buyer buyer = new Buyer { IsActive = true };
+    private Customer customer = new Customer { IsActive = true };
 
     private async Task HandleValidSubmit()
     {
-        await BuyerRepository.AddAsync(buyer);
-        Navigation.NavigateTo("/buyers");
+        await CustomerRepository.AddAsync(customer);
+        Navigation.NavigateTo("/customers");
     }
 }
