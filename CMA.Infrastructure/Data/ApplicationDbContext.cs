@@ -34,6 +34,8 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<VehicleDocument> VehicleDocuments { get; set; }
     public DbSet<VehicleMaintenance> VehicleMaintenances { get; set; }
+    public DbSet<Delivery> Deliveries { get; set; }
+    public DbSet<DeliveryOrder> DeliveryOrders { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -340,6 +342,40 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
                 .WithMany(e => e.AttendanceRecords)
                 .HasForeignKey(a => a.EmployeeId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure Delivery
+        modelBuilder.Entity<Delivery>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.DeliveryNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.TotalDistance).HasPrecision(10, 2);
+            
+            entity.HasOne(d => d.Vehicle)
+                .WithMany(v => v.Deliveries)
+                .HasForeignKey(d => d.VehicleId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.Driver)
+                .WithMany()
+                .HasForeignKey(d => d.DriverId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure DeliveryOrder (junction table)
+        modelBuilder.Entity<DeliveryOrder>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.HasOne(delOrder => delOrder.Delivery)
+                .WithMany(d => d.DeliveryOrders)
+                .HasForeignKey(delOrder => delOrder.DeliveryId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(delOrder => delOrder.Order)
+                .WithMany(o => o.DeliveryOrders)
+                .HasForeignKey(delOrder => delOrder.OrderId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

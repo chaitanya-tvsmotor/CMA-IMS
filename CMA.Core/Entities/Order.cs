@@ -16,6 +16,7 @@ public class Order : BaseEntity
     public Dealer Dealer { get; set; } = null!;
     public Employee? SalesAgent { get; set; }
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public ICollection<DeliveryOrder> DeliveryOrders { get; set; } = new List<DeliveryOrder>();
 }
 
 public enum OrderStatus

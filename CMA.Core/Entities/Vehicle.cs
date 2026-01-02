@@ -17,4 +17,5 @@ public class Vehicle : BaseEntity
     public Employee? AssignedDriver { get; set; }
     public ICollection<VehicleDocument> Documents { get; set; } = new List<VehicleDocument>();
     public ICollection<VehicleMaintenance> MaintenanceRecords { get; set; } = new List<VehicleMaintenance>();
+    public ICollection<Delivery> Deliveries { get; set; } = new List<Delivery>();
 }

@@ -35,14 +35,15 @@
 
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="category" class="form-label">Category</label>
-                    <InputSelect id="category" class="form-select" @bind-Value="product.CategoryId">
-                        <option value="">-- Select Category --</option>
+                    <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                    <InputSelect id="category" class="form-select" @bind-Value="product.CategoryId" required>
+                        <option value="0">-- Select Category --</option>
                         @foreach (var category in categories)
                         {
                             <option value="@category.Id">@category.Name</option>
                         }
                     </InputSelect>
+                    <ValidationMessage For="@(() => product.CategoryId)" />
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="unitPrice" class="form-label">Unit Price</label>
@@ -88,6 +89,13 @@
 
     private async Task HandleValidSubmit()
     {
+        // Validate CategoryId is selected
+        if (product.CategoryId == 0)
+        {
+            // Show error - category is required
+            return;
+        }
+        
         DbContext.Products.Add(product);
         await DbContext.SaveChangesAsync();
         Navigation.NavigateTo("/products");
