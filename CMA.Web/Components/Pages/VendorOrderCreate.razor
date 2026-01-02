@@ -1,0 +1,97 @@
+@page "/vendor-orders/create"
+@using CMA.Core.Entities
+@using CMA.Infrastructure.Data
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Manager")]
+
+<PageTitle>Create Vendor Order - CMA IMS</PageTitle>
+
+<h1>Create Vendor Order (Purchase Order)</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <EditForm Model="@vendorOrder" OnValidSubmit="@HandleValidSubmit" FormName="VendorOrderCreateForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="orderNumber" class="form-label">Order Number</label>
+                    <InputText id="orderNumber" class="form-control" @bind-Value="vendorOrder.OrderNumber" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="orderDate" class="form-label">Order Date</label>
+                    <InputDate id="orderDate" class="form-control" @bind-Value="vendorOrder.OrderDate" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="vendor" class="form-label">Vendor</label>
+                    <InputSelect id="vendor" class="form-select" @bind-Value="vendorOrder.VendorId">
+                        <option value="">-- Select Vendor --</option>
+                        @foreach (var vendor in vendors)
+                        {
+                            <option value="@vendor.Id">@vendor.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="status" class="form-label">Status</label>
+                    <InputSelect id="status" class="form-select" @bind-Value="vendorOrder.Status">
+                        @foreach (var status in Enum.GetValues<VendorOrderStatus>())
+                        {
+                            <option value="@status">@status</option>
+                        }
+                    </InputSelect>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="totalAmount" class="form-label">Total Amount</label>
+                    <InputNumber id="totalAmount" class="form-control" @bind-Value="vendorOrder.TotalAmount" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="expectedDeliveryDate" class="form-label">Expected Delivery Date</label>
+                    <InputDate id="expectedDeliveryDate" class="form-control" @bind-Value="vendorOrder.ExpectedDeliveryDate" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notes</label>
+                <InputTextArea id="notes" class="form-control" @bind-Value="vendorOrder.Notes" rows="3" />
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="/vendor-orders" class="btn btn-secondary">Cancel</a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private VendorOrder vendorOrder = new VendorOrder 
+    { 
+        OrderDate = DateTime.UtcNow,
+        OrderNumber = $"PO-{DateTime.Now:yyyyMMddHHmmss}",
+        Status = VendorOrderStatus.Pending
+    };
+    private List<Vendor> vendors = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        vendors = await DbContext.Vendors.Where(v => v.IsActive).ToListAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        DbContext.VendorOrders.Add(vendorOrder);
+        await DbContext.SaveChangesAsync();
+        Navigation.NavigateTo("/vendor-orders");
+    }
+}

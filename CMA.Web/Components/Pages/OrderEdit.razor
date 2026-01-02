@@ -1,0 +1,105 @@
+@page "/orders/edit/{id:int}"
+@using CMA.Core.Entities
+@using CMA.Infrastructure.Data
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Manager,Supervisor,SalesAgent")]
+
+<PageTitle>Edit Order - CMA IMS</PageTitle>
+
+<h1>Edit Order</h1>
+
+@if (order == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-8">
+            <EditForm Model="@order" OnValidSubmit="@HandleValidSubmit" FormName="OrderEditForm">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="orderNumber" class="form-label">Order Number</label>
+                        <InputText id="orderNumber" class="form-control" @bind-Value="order.OrderNumber" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="orderDate" class="form-label">Order Date</label>
+                        <InputDate id="orderDate" class="form-control" @bind-Value="order.OrderDate" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="dealer" class="form-label">Dealer</label>
+                        <InputSelect id="dealer" class="form-select" @bind-Value="order.DealerId">
+                            <option value="">-- Select Dealer --</option>
+                            @foreach (var dealer in dealers)
+                            {
+                                <option value="@dealer.Id">@dealer.Name</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <InputSelect id="status" class="form-select" @bind-Value="order.Status">
+                            @foreach (var status in Enum.GetValues<OrderStatus>())
+                            {
+                                <option value="@status">@status</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="totalAmount" class="form-label">Total Amount</label>
+                    <InputNumber id="totalAmount" class="form-control" @bind-Value="order.TotalAmount" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Notes</label>
+                    <InputTextArea id="notes" class="form-control" @bind-Value="order.Notes" rows="3" />
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <a href="/orders" class="btn btn-secondary">Cancel</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Order? order;
+    private List<Dealer> dealers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        dealers = await DbContext.Dealers.Where(b => b.IsActive).ToListAsync();
+        order = await DbContext.Orders.FindAsync(Id);
+        if (order == null)
+        {
+            Navigation.NavigateTo("/orders");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (order != null)
+        {
+            order.ModifiedDate = DateTime.UtcNow;
+            DbContext.Orders.Update(order);
+            await DbContext.SaveChangesAsync();
+            Navigation.NavigateTo("/orders");
+        }
+    }
+}

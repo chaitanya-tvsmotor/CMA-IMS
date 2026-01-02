@@ -1,0 +1,159 @@
+@page "/employees"
+@using CMA.Core.Entities
+@using CMA.Core.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@inject IRepository<Employee> EmployeeRepository
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Manager,Supervisor,Accountant")]
+
+<PageTitle>Employees - CMA</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Employees</h1>
+    <AuthorizeView Roles="Admin,Manager,Supervisor">
+        <a href="/employees/create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add New Employee
+        </a>
+    </AuthorizeView>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <input type="text" class="form-control" @bind="searchTerm" @bind:event="oninput" placeholder="Search by name, code, email or phone..." />
+    </div>
+</div>
+
+@if (employees == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!filteredEmployees.Any())
+{
+    <div class="alert alert-info">No employees found.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th @onclick='() => Sort("EmployeeCode")' style="cursor: pointer;">
+                        Code @GetSortIcon("EmployeeCode")
+                    </th>
+                    <th @onclick='() => Sort("Name")' style="cursor: pointer;">
+                        Name @GetSortIcon("Name")
+                    </th>
+                    <th @onclick='() => Sort("EmployeeType")' style="cursor: pointer;">
+                        Type @GetSortIcon("EmployeeType")
+                    </th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th @onclick='() => Sort("MonthlySalary")' style="cursor: pointer;">
+                        Salary @GetSortIcon("MonthlySalary")
+                    </th>
+                    <th @onclick='() => Sort("JoiningDate")' style="cursor: pointer;">
+                        Joining Date @GetSortIcon("JoiningDate")
+                    </th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var employee in filteredEmployees)
+                {
+                    <tr>
+                        <td>@employee.EmployeeCode</td>
+                        <td>@employee.Name</td>
+                        <td><span class="badge bg-info">@employee.EmployeeType</span></td>
+                        <td>@employee.Email</td>
+                        <td>@employee.Phone</td>
+                        <td>@employee.MonthlySalary.ToString("C")</td>
+                        <td>@employee.JoiningDate.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            @if (employee.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
+                        <td>
+                            <AuthorizeView Roles="Admin,Manager,Supervisor">
+                                <a href="/employees/edit/@employee.Id" class="btn btn-sm btn-warning">Edit</a>
+                            </AuthorizeView>
+                            <AuthorizeView Roles="Accountant">
+                                <a href="/employees/edit/@employee.Id" class="btn btn-sm btn-info">View</a>
+                            </AuthorizeView>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<Employee>? employees;
+    private string searchTerm = "";
+    private string sortColumn = "Name";
+    private bool sortAscending = true;
+
+    private IEnumerable<Employee> filteredEmployees
+    {
+        get
+        {
+            if (employees == null) return Enumerable.Empty<Employee>();
+
+            var filtered = employees.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                filtered = filtered.Where(e =>
+                    e.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    e.EmployeeCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    (e.Email != null && e.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (e.Phone != null && e.Phone.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                );
+            }
+
+            filtered = sortColumn switch
+            {
+                "Name" => sortAscending ? filtered.OrderBy(e => e.Name) : filtered.OrderByDescending(e => e.Name),
+                "EmployeeCode" => sortAscending ? filtered.OrderBy(e => e.EmployeeCode) : filtered.OrderByDescending(e => e.EmployeeCode),
+                "EmployeeType" => sortAscending ? filtered.OrderBy(e => e.EmployeeType) : filtered.OrderByDescending(e => e.EmployeeType),
+                "MonthlySalary" => sortAscending ? filtered.OrderBy(e => e.MonthlySalary) : filtered.OrderByDescending(e => e.MonthlySalary),
+                "JoiningDate" => sortAscending ? filtered.OrderBy(e => e.JoiningDate) : filtered.OrderByDescending(e => e.JoiningDate),
+                _ => filtered.OrderBy(e => e.Name)
+            };
+
+            return filtered;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allEmployees = await EmployeeRepository.GetAllAsync();
+        employees = allEmployees.ToList();
+    }
+
+    private void Sort(string column)
+    {
+        if (sortColumn == column)
+        {
+            sortAscending = !sortAscending;
+        }
+        else
+        {
+            sortColumn = column;
+            sortAscending = true;
+        }
+    }
+
+    private string GetSortIcon(string column)
+    {
+        if (sortColumn != column) return "";
+        return sortAscending ? "↑" : "↓";
+    }
+}

@@ -1,0 +1,75 @@
+@page "/sizes/edit/{id:int}"
+@using CMA.Core.Entities
+@using CMA.Core.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@inject IRepository<Size> SizeRepository
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Manager")]
+
+<PageTitle>Edit Size - CMA IMS</PageTitle>
+
+<h1>Edit Size</h1>
+
+@if (size == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-6">
+            <EditForm Model="@size" OnValidSubmit="@HandleValidSubmit" FormName="SizeEditForm">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <InputText id="name" class="form-control" @bind-Value="size.Name" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <InputText id="description" class="form-control" @bind-Value="size.Description" />
+                </div>
+
+                <div class="mb-3 form-check">
+                    <InputCheckbox id="isActive" class="form-check-input" @bind-Value="size.IsActive" />
+                    <label class="form-check-label" for="isActive">
+                        Active
+                    </label>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <a href="/sizes" class="btn btn-secondary">Cancel</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Size? size;
+
+    protected override async Task OnInitializedAsync()
+    {
+        size = await SizeRepository.GetByIdAsync(Id);
+        if (size == null)
+        {
+            Navigation.NavigateTo("/sizes");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (size != null)
+        {
+            size.ModifiedDate = DateTime.UtcNow;
+            await SizeRepository.UpdateAsync(size);
+            Navigation.NavigateTo("/sizes");
+        }
+    }
+}
