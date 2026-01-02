@@ -6,41 +6,28 @@
 @inject ApplicationDbContext DbContext
 @inject NavigationManager Navigation
 @attribute [Authorize(Roles = "Admin,Manager,Supervisor,SalesAgent")]
+@rendermode InteractiveServer
 
-<PageTitle>Create Order - CMA IMS</PageTitle>
+<PageTitle>Create Order - Classic Marketing Agencies</PageTitle>
 
 <h1>Create Order</h1>
 
 <div class="row">
-    <div class="col-md-8">
+    <div class="col-md-12">
         <EditForm Model="@order" OnValidSubmit="@HandleValidSubmit" FormName="OrderCreateForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="orderNumber" class="form-label">Order Number</label>
-                    <InputText id="orderNumber" class="form-control" @bind-Value="order.OrderNumber" />
+                    <InputText id="orderNumber" class="form-control" @bind-Value="order.OrderNumber" readonly />
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="orderDate" class="form-label">Order Date</label>
                     <InputDate id="orderDate" class="form-control" @bind-Value="order.OrderDate" />
                 </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="dealer" class="form-label">Dealer <span class="text-danger">*</span></label>
-                    <InputSelect id="dealer" class="form-select" @bind-Value="order.DealerId" required>
-                        <option value="0">-- Select Dealer --</option>
-                        @foreach (var dealer in dealers)
-                        {
-                            <option value="@dealer.Id">@dealer.Name</option>
-                        }
-                    </InputSelect>
-                    <ValidationMessage For="@(() => order.DealerId)" />
-                </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="status" class="form-label">Status</label>
                     <InputSelect id="status" class="form-select" @bind-Value="order.Status">
                         @foreach (var status in Enum.GetValues<OrderStatus>())
@@ -51,49 +38,272 @@
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label for="totalAmount" class="form-label">Total Amount</label>
-                <InputNumber id="totalAmount" class="form-control" @bind-Value="order.TotalAmount" />
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="dealer" class="form-label">Dealer <span class="text-danger">*</span></label>
+                    <InputSelect id="dealer" class="form-select" @bind-Value="order.DealerId" required>
+                        <option value="0">-- Select Dealer --</option>
+                        @foreach (var dealer in dealers)
+                        {
+                            <option value="@dealer.Id">@dealer.Name - @dealer.Email</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => order.DealerId)" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="salesAgent" class="form-label">Sales Agent (Optional)</label>
+                    <InputSelect id="salesAgent" class="form-select" @bind-Value="order.SalesAgentId">
+                        <option value="">-- Select Sales Agent --</option>
+                        @foreach (var agent in salesAgents)
+                        {
+                            <option value="@agent.Id">@agent.Name - @agent.EmployeeCode</option>
+                        }
+                    </InputSelect>
+                </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <h4>Order Items</h4>
+
+            <div class="row mb-3">
+                <div class="col-md-5">
+                    <label for="productSelect" class="form-label">Product <span class="text-danger">*</span></label>
+                    <select id="productSelect" class="form-select" @bind="selectedProductId">
+                        <option value="0">-- Select Product --</option>
+                        @foreach (var product in products)
+                        {
+                            <option value="@product.Id">@product.Name - $@product.UnitPrice.ToString("N2") (Stock: @product.StockQuantity)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="quantityInput" class="form-label">Quantity <span class="text-danger">*</span></label>
+                    <input type="number" id="quantityInput" class="form-control" @bind="selectedQuantity" min="1" />
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="button" class="btn btn-success" @onclick="AddOrderItem">
+                        <i class="bi bi-plus-circle"></i> Add Item
+                    </button>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @errorMessage
+                    <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+                </div>
+            }
+
+            <div class="table-responsive mb-3">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th>Unit Price</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-end">Total Price</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (orderItems.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No items added yet. Please add at least one product.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in orderItems)
+                            {
+                                <tr>
+                                    <td>@item.ProductName</td>
+                                    <td>$@item.UnitPrice.ToString("N2")</td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-end">$@item.TotalPrice.ToString("N2")</td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-danger" @onclick="() => RemoveOrderItem(item)">
+                                            <i class="bi bi-trash"></i> Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                            <tr class="table-info fw-bold">
+                                <td colspan="3" class="text-end">Total Amount:</td>
+                                <td class="text-end">$@order.TotalAmount.ToString("N2")</td>
+                                <td></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
 
             <div class="mb-3">
                 <label for="notes" class="form-label">Notes</label>
-                <InputTextArea id="notes" class="form-control" @bind-Value="order.Notes" rows="3" />
+                <InputTextArea id="notes" class="form-control" @bind-Value="order.Notes" rows="3" placeholder="Enter any additional notes or comments..." />
             </div>
 
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a href="/orders" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" disabled="@(orderItems.Count == 0)">
+                    <i class="bi bi-save"></i> Create Order
+                </button>
+                <a href="/orders" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
             </div>
         </EditForm>
     </div>
 </div>
 
 @code {
-    private Order order = new Order 
+    [SupplyParameterFromForm]
+    private Order order { get; set; } = new Order 
     { 
         OrderDate = DateTime.UtcNow,
         OrderNumber = $"ORD-{DateTime.Now:yyyyMMddHHmmss}",
         Status = OrderStatus.Pending
     };
+    
     private List<Dealer> dealers = new();
+    private List<Employee> salesAgents = new();
+    private List<Product> products = new();
+    private List<OrderItemDto> orderItems = new();
+    
+    private int selectedProductId = 0;
+    private int selectedQuantity = 1;
+    private string errorMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         dealers = await DbContext.Dealers.Where(b => b.IsActive).ToListAsync();
+        salesAgents = await DbContext.Employees.Where(e => e.EmployeeType == EmployeeType.SalesAgent).ToListAsync();
+        products = await DbContext.Products.Where(p => p.IsActive && p.StockQuantity > 0).ToListAsync();
+    }
+
+    private void AddOrderItem()
+    {
+        errorMessage = string.Empty;
+        
+        if (selectedProductId == 0)
+        {
+            errorMessage = "Please select a product.";
+            return;
+        }
+        
+        if (selectedQuantity <= 0)
+        {
+            errorMessage = "Quantity must be greater than 0.";
+            return;
+        }
+        
+        var product = products.FirstOrDefault(p => p.Id == selectedProductId);
+        if (product == null)
+        {
+            errorMessage = "Selected product not found.";
+            return;
+        }
+        
+        if (selectedQuantity > product.StockQuantity)
+        {
+            errorMessage = $"Insufficient stock. Available: {product.StockQuantity}";
+            return;
+        }
+        
+        // Check if product already exists in order items
+        var existingItem = orderItems.FirstOrDefault(i => i.ProductId == selectedProductId);
+        if (existingItem != null)
+        {
+            errorMessage = "Product already added. Please remove it first if you want to change the quantity.";
+            return;
+        }
+        
+        var orderItem = new OrderItemDto
+        {
+            ProductId = product.Id,
+            ProductName = product.Name,
+            Quantity = selectedQuantity,
+            UnitPrice = product.UnitPrice,
+            TotalPrice = selectedQuantity * product.UnitPrice
+        };
+        
+        orderItems.Add(orderItem);
+        
+        // Recalculate total
+        order.TotalAmount = orderItems.Sum(i => i.TotalPrice);
+        
+        // Reset selection
+        selectedProductId = 0;
+        selectedQuantity = 1;
+    }
+
+    private void RemoveOrderItem(OrderItemDto item)
+    {
+        orderItems.Remove(item);
+        order.TotalAmount = orderItems.Sum(i => i.TotalPrice);
     }
 
     private async Task HandleValidSubmit()
     {
+        errorMessage = string.Empty;
+        
         // Validate DealerId is selected
         if (order.DealerId == 0)
         {
-            // Show error - dealer is required
+            errorMessage = "Please select a dealer.";
             return;
         }
         
-        DbContext.Orders.Add(order);
-        await DbContext.SaveChangesAsync();
-        Navigation.NavigateTo("/orders");
+        // Validate at least one order item
+        if (orderItems.Count == 0)
+        {
+            errorMessage = "Please add at least one product to the order.";
+            return;
+        }
+        
+        try
+        {
+            // Add order
+            DbContext.Orders.Add(order);
+            await DbContext.SaveChangesAsync();
+            
+            // Add order items
+            foreach (var item in orderItems)
+            {
+                var orderItem = new OrderItem
+                {
+                    OrderId = order.Id,
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    TotalPrice = item.TotalPrice
+                };
+                DbContext.OrderItems.Add(orderItem);
+                
+                // Update product stock
+                var product = await DbContext.Products.FindAsync(item.ProductId);
+                if (product != null)
+                {
+                    product.StockQuantity -= item.Quantity;
+                }
+            }
+            
+            await DbContext.SaveChangesAsync();
+            Navigation.NavigateTo("/orders");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error creating order: {ex.Message}";
+        }
+    }
+    
+    private class OrderItemDto
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal TotalPrice { get; set; }
     }
 }
