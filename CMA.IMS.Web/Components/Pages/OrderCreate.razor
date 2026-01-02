@@ -5,7 +5,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext DbContext
 @inject NavigationManager Navigation
-@attribute [Authorize(Roles = "Admin,Manager")]
+@attribute [Authorize(Roles = "Admin,Manager,Supervisor,SalesAgent")]
 
 <PageTitle>Create Order - CMA IMS</PageTitle>
 

@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @inject IRepository<Dealer> DealerRepository
 @inject NavigationManager Navigation
-@attribute [Authorize(Roles = "Admin,Manager")]
+@attribute [Authorize(Roles = "Admin,Manager,Supervisor,SalesAgent")]
 
 <PageTitle>Edit Dealer - CMA IMS</PageTitle>
 
