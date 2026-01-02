@@ -11,9 +11,23 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Add DbContext
+// Configure DbContext based on database provider
+var databaseProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "Sqlite";
+var connectionString = databaseProvider.ToLower() == "sqlserver"
+    ? builder.Configuration.GetConnectionString("SqlServerConnection")
+    : builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=cma_ims.db"));
+{
+    if (databaseProvider.ToLower() == "sqlserver")
+    {
+        options.UseSqlServer(connectionString ?? "Server=localhost;Database=CMA_IMS;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;MultipleActiveResultSets=true");
+    }
+    else
+    {
+        options.UseSqlite(connectionString ?? "Data Source=cma_ims.db");
+    }
+});
 
 // Add Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
