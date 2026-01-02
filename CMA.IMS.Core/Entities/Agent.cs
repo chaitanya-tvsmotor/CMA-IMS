@@ -1,5 +1,7 @@
 namespace CMA.IMS.Core.Entities;
 
+// Note: This entity is being deprecated in favor of Employee with SalesAgent type
+// Keeping for backward compatibility during migration
 public class Agent : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
@@ -11,6 +13,6 @@ public class Agent : BaseEntity
     
     // Navigation properties
     public Employee? Employee { get; set; }
-    public ICollection<Customer> Customers { get; set; } = new List<Customer>();
+    public ICollection<Dealer> Dealers { get; set; } = new List<Dealer>();
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }

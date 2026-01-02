@@ -13,20 +13,27 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     }
 
     public DbSet<Category> Categories { get; set; }
+    public DbSet<SubCategory> SubCategories { get; set; }
+    public DbSet<Brand> Brands { get; set; }
     public DbSet<Vendor> Vendors { get; set; }
     public DbSet<Size> Sizes { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductVendor> ProductVendors { get; set; }
     public DbSet<ProductSize> ProductSizes { get; set; }
-    public DbSet<Customer> Customers { get; set; }
+    public DbSet<Dealer> Dealers { get; set; }
     public DbSet<Agent> Agents { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<VendorOrder> VendorOrders { get; set; }
     public DbSet<VendorOrderItem> VendorOrderItems { get; set; }
     public DbSet<Employee> Employees { get; set; }
+    public DbSet<EmployeeDocument> EmployeeDocuments { get; set; }
+    public DbSet<Attendance> Attendances { get; set; }
     public DbSet<Leave> Leaves { get; set; }
     public DbSet<SalaryPayment> SalaryPayments { get; set; }
+    public DbSet<Vehicle> Vehicles { get; set; }
+    public DbSet<VehicleDocument> VehicleDocuments { get; set; }
+    public DbSet<VehicleMaintenance> VehicleMaintenances { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -39,11 +46,25 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
             entity.Property(e => e.SKU).HasMaxLength(50);
             entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.Property(e => e.Length).HasPrecision(10, 2);
+            entity.Property(e => e.Width).HasPrecision(10, 2);
+            entity.Property(e => e.Height).HasPrecision(10, 2);
+            entity.Property(e => e.Weight).HasPrecision(10, 2);
             
             entity.HasOne(p => p.Category)
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(p => p.SubCategory)
+                .WithMany(sc => sc.Products)
+                .HasForeignKey(p => p.SubCategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(p => p.Brand)
+                .WithMany(b => b.Products)
+                .HasForeignKey(p => p.BrandId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure Category
@@ -102,21 +123,21 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Configure Customer
-        modelBuilder.Entity<Customer>(entity =>
+        // Configure Dealer
+        modelBuilder.Entity<Dealer>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.Phone).HasMaxLength(20);
             
-            entity.HasOne(c => c.Agent)
-                .WithMany(a => a.Customers)
-                .HasForeignKey(c => c.AgentId)
+            entity.HasOne(d => d.SalesAgent)
+                .WithMany()
+                .HasForeignKey(d => d.SalesAgentId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // Configure Agent
+        // Configure Agent (deprecated - using Employee.SalesAgent instead)
         modelBuilder.Entity<Agent>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -133,14 +154,14 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             entity.Property(e => e.OrderNumber).IsRequired().HasMaxLength(50);
             entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
             
-            entity.HasOne(o => o.Customer)
-                .WithMany(c => c.Orders)
-                .HasForeignKey(o => o.CustomerId)
+            entity.HasOne(o => o.Dealer)
+                .WithMany(d => d.Orders)
+                .HasForeignKey(o => o.DealerId)
                 .OnDelete(DeleteBehavior.Restrict);
                 
-            entity.HasOne(o => o.Agent)
-                .WithMany(a => a.Orders)
-                .HasForeignKey(o => o.AgentId)
+            entity.HasOne(o => o.SalesAgent)
+                .WithMany()
+                .HasForeignKey(o => o.SalesAgentId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -236,6 +257,88 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             entity.HasOne(sp => sp.Employee)
                 .WithMany(e => e.SalaryPayments)
                 .HasForeignKey(sp => sp.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure SubCategory
+        modelBuilder.Entity<SubCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            
+            entity.HasOne(sc => sc.Category)
+                .WithMany(c => c.SubCategories)
+                .HasForeignKey(sc => sc.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure Brand
+        modelBuilder.Entity<Brand>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+        });
+
+        // Configure Vehicle
+        modelBuilder.Entity<Vehicle>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.VehicleNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.VehicleType).IsRequired().HasMaxLength(50);
+            
+            entity.HasOne(v => v.AssignedDriver)
+                .WithMany()
+                .HasForeignKey(v => v.AssignedDriverId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure VehicleDocument
+        modelBuilder.Entity<VehicleDocument>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.DocumentType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.DocumentNumber).IsRequired().HasMaxLength(100);
+            
+            entity.HasOne(vd => vd.Vehicle)
+                .WithMany(v => v.Documents)
+                .HasForeignKey(vd => vd.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure VehicleMaintenance
+        modelBuilder.Entity<VehicleMaintenance>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MaintenanceType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Cost).HasPrecision(18, 2);
+            
+            entity.HasOne(vm => vm.Vehicle)
+                .WithMany(v => v.MaintenanceRecords)
+                .HasForeignKey(vm => vm.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure EmployeeDocument
+        modelBuilder.Entity<EmployeeDocument>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.DocumentType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.DocumentNumber).IsRequired().HasMaxLength(100);
+            
+            entity.HasOne(ed => ed.Employee)
+                .WithMany(e => e.Documents)
+                .HasForeignKey(ed => ed.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure Attendance
+        modelBuilder.Entity<Attendance>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.HasOne(a => a.Employee)
+                .WithMany(e => e.AttendanceRecords)
+                .HasForeignKey(a => a.EmployeeId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

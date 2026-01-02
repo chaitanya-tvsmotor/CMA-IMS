@@ -31,7 +31,7 @@ else
             <thead>
                 <tr>
                     <th>Order Number</th>
-                    <th>Customer</th>
+                    <th>Dealer</th>
                     <th>Order Date</th>
                     <th>Total Amount</th>
                     <th>Status</th>
@@ -43,7 +43,7 @@ else
                 {
                     <tr>
                         <td>@order.OrderNumber</td>
-                        <td>@order.Customer.Name</td>
+                        <td>@order.Dealer.Name</td>
                         <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
                         <td>@order.TotalAmount.ToString("C")</td>
                         <td>
@@ -95,7 +95,7 @@ else
     private async Task LoadOrders()
     {
         orders = await DbContext.Orders
-            .Include(o => o.Customer)
+            .Include(o => o.Dealer)
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
     }

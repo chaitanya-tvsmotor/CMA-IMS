@@ -12,7 +12,13 @@ public static class DbInitializer
         await context.Database.EnsureCreatedAsync();
 
         // Seed roles
-        string[] roles = { "Admin", "Manager", "Supervisor", "MarketingAgent", "Accountant", "Viewer" };
+        // Public - no role needed, anonymous access
+        // Dealer - will have Dealer role
+        // SalesAgent - Employee with SalesAgent type
+        // Supervisor - Employee with Supervisor type
+        // Manager - Employee with Manager type
+        // Admin - full access
+        string[] roles = { "Admin", "Manager", "Supervisor", "SalesAgent", "Accountant", "Dealer", "Public" };
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
@@ -77,41 +83,86 @@ public static class DbInitializer
             await context.SaveChangesAsync();
         }
 
-        if (!await context.Agents.AnyAsync())
-        {
-            var agents = new List<Agent>
-            {
-                new Agent { Name = "John Agent", Email = "john.agent@cma.com", Phone = "1231231234", EmployeeCode = "AG001" },
-                new Agent { Name = "Sarah Agent", Email = "sarah.agent@cma.com", Phone = "3213213210", EmployeeCode = "AG002" }
-            };
-            await context.Agents.AddRangeAsync(agents);
-            await context.SaveChangesAsync();
-        }
+        // Note: Agents are deprecated, using Employee.SalesAgent instead
 
-        if (!await context.Customers.AnyAsync())
-        {
-            var agent = await context.Agents.FirstOrDefaultAsync();
-            var customers = new List<Customer>
-            {
-                new Customer { Name = "ABC Retail Store", Email = "contact@abcretail.com", Phone = "1112223333", Company = "ABC Retail", AgentId = agent?.Id },
-                new Customer { Name = "XYZ Supermarket", Email = "info@xyzsupermarket.com", Phone = "4445556666", Company = "XYZ Corp", AgentId = agent?.Id },
-                new Customer { Name = "Metro Mart", Email = "sales@metromart.com", Phone = "7778889999", Company = "Metro Mart Ltd" }
-            };
-            await context.Customers.AddRangeAsync(customers);
-            await context.SaveChangesAsync();
-        }
 
         if (!await context.Employees.AnyAsync())
         {
             var employees = new List<Employee>
             {
-                new Employee { Name = "John Smith", EmployeeCode = "EMP001", Email = "john@cma.com", Phone = "1234567890", EmployeeType = EmployeeType.Manager, MonthlySalary = 80000, JoiningDate = DateTime.UtcNow.AddYears(-2) },
-                new Employee { Name = "Jane Supervisor", EmployeeCode = "EMP002", Email = "jane@cma.com", Phone = "2345678901", EmployeeType = EmployeeType.Supervisor, MonthlySalary = 60000, JoiningDate = DateTime.UtcNow.AddYears(-1) },
-                new Employee { Name = "Mike Worker", EmployeeCode = "EMP003", Email = "mike@cma.com", Phone = "3456789012", EmployeeType = EmployeeType.Worker, MonthlySalary = 30000, JoiningDate = DateTime.UtcNow.AddMonths(-6) },
-                new Employee { Name = "Sarah Driver", EmployeeCode = "EMP004", Email = "sarah@cma.com", Phone = "4567890123", EmployeeType = EmployeeType.Driver, MonthlySalary = 35000, JoiningDate = DateTime.UtcNow.AddMonths(-8) },
-                new Employee { Name = "Bob Accountant", EmployeeCode = "EMP005", Email = "bob@cma.com", Phone = "5678901234", EmployeeType = EmployeeType.Accountant, MonthlySalary = 50000, JoiningDate = DateTime.UtcNow.AddMonths(-4) }
+                new Employee { Name = "John Manager", EmployeeCode = "EMP001", Email = "manager@cma.com", Phone = "1234567890", EmployeeType = EmployeeType.Manager, MonthlySalary = 80000, JoiningDate = DateTime.UtcNow.AddYears(-2) },
+                new Employee { Name = "Jane Supervisor", EmployeeCode = "EMP002", Email = "supervisor@cma.com", Phone = "2345678901", EmployeeType = EmployeeType.Supervisor, MonthlySalary = 60000, JoiningDate = DateTime.UtcNow.AddYears(-1) },
+                new Employee { Name = "Tom Sales Agent", EmployeeCode = "EMP003", Email = "salesagent@cma.com", Phone = "3456789012", EmployeeType = EmployeeType.SalesAgent, MonthlySalary = 45000, JoiningDate = DateTime.UtcNow.AddMonths(-10) },
+                new Employee { Name = "Mike Worker", EmployeeCode = "EMP004", Email = "mike@cma.com", Phone = "4567890123", EmployeeType = EmployeeType.Worker, MonthlySalary = 30000, JoiningDate = DateTime.UtcNow.AddMonths(-6) },
+                new Employee { Name = "Sarah Driver", EmployeeCode = "EMP005", Email = "sarah@cma.com", Phone = "5678901234", EmployeeType = EmployeeType.Driver, MonthlySalary = 35000, JoiningDate = DateTime.UtcNow.AddMonths(-8) },
+                new Employee { Name = "Bob Accountant", EmployeeCode = "EMP006", Email = "accountant@cma.com", Phone = "6789012345", EmployeeType = EmployeeType.Accountant, MonthlySalary = 50000, JoiningDate = DateTime.UtcNow.AddMonths(-4) }
             };
             await context.Employees.AddRangeAsync(employees);
+            await context.SaveChangesAsync();
+        }
+
+        if (!await context.Dealers.AnyAsync())
+        {
+            var salesAgent = await context.Employees.FirstOrDefaultAsync(e => e.EmployeeType == EmployeeType.SalesAgent);
+            var dealers = new List<Dealer>
+            {
+                new Dealer { Name = "ABC Retail Store", Email = "dealer1@abcretail.com", Phone = "1112223333", Company = "ABC Retail", SalesAgentId = salesAgent?.Id },
+                new Dealer { Name = "XYZ Supermarket", Email = "dealer2@xyzsupermarket.com", Phone = "4445556666", Company = "XYZ Corp", SalesAgentId = salesAgent?.Id },
+                new Dealer { Name = "Metro Mart", Email = "dealer3@metromart.com", Phone = "7778889999", Company = "Metro Mart Ltd" }
+            };
+            await context.Dealers.AddRangeAsync(dealers);
+            await context.SaveChangesAsync();
+        }
+
+        if (!await context.SubCategories.AnyAsync())
+        {
+            var electronics = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Electronics");
+            var clothing = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Clothing");
+            if (electronics != null || clothing != null)
+            {
+                var subCategories = new List<SubCategory>();
+                if (electronics != null)
+                {
+                    subCategories.AddRange(new[]
+                    {
+                        new SubCategory { Name = "Mobile Phones", CategoryId = electronics.Id },
+                        new SubCategory { Name = "Laptops", CategoryId = electronics.Id }
+                    });
+                }
+                if (clothing != null)
+                {
+                    subCategories.AddRange(new[]
+                    {
+                        new SubCategory { Name = "Men's Wear", CategoryId = clothing.Id },
+                        new SubCategory { Name = "Women's Wear", CategoryId = clothing.Id }
+                    });
+                }
+                await context.SubCategories.AddRangeAsync(subCategories);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        if (!await context.Brands.AnyAsync())
+        {
+            var brands = new List<Brand>
+            {
+                new Brand { Name = "Samsung", Description = "Electronics brand" },
+                new Brand { Name = "Apple", Description = "Premium electronics" },
+                new Brand { Name = "Nike", Description = "Sports brand" }
+            };
+            await context.Brands.AddRangeAsync(brands);
+            await context.SaveChangesAsync();
+        }
+
+        if (!await context.Vehicles.AnyAsync())
+        {
+            var driver = await context.Employees.FirstOrDefaultAsync(e => e.EmployeeType == EmployeeType.Driver);
+            var vehicles = new List<Vehicle>
+            {
+                new Vehicle { VehicleNumber = "TN01AB1234", VehicleType = "Truck", Make = "Tata", Model = "407", Year = 2020, AssignedDriverId = driver?.Id },
+                new Vehicle { VehicleNumber = "TN02CD5678", VehicleType = "Van", Make = "Mahindra", Model = "Bolero", Year = 2021 }
+            };
+            await context.Vehicles.AddRangeAsync(vehicles);
             await context.SaveChangesAsync();
         }
     }

@@ -17,6 +17,8 @@ public class Employee : BaseEntity
     // Navigation properties
     public ICollection<Leave> Leaves { get; set; } = new List<Leave>();
     public ICollection<SalaryPayment> SalaryPayments { get; set; } = new List<SalaryPayment>();
+    public ICollection<EmployeeDocument> Documents { get; set; } = new List<EmployeeDocument>();
+    public ICollection<Attendance> AttendanceRecords { get; set; } = new List<Attendance>();
 }
 
 public enum EmployeeType
@@ -25,6 +27,6 @@ public enum EmployeeType
     Driver,
     Supervisor,
     Manager,
-    MarketingAgent,
+    SalesAgent,
     Accountant
 }
