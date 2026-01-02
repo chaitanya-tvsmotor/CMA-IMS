@@ -13,7 +13,7 @@
 
 <div class="row">
     <div class="col-md-8">
-        <EditForm Model="@product" OnValidSubmit="@HandleValidSubmit">
+        <EditForm Model="@product" OnValidSubmit="@HandleValidSubmit" FormName="ProductCreateForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
@@ -77,7 +77,8 @@
 </div>
 
 @code {
-    private Product product = new Product { IsActive = true };
+    [SupplyParameterFromForm]
+    private Product product { get; set; } = new Product { IsActive = true };
     private List<Category> categories = new();
 
     protected override async Task OnInitializedAsync()

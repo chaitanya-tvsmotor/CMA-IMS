@@ -19,7 +19,7 @@ else
 {
     <div class="row">
         <div class="col-md-8">
-            <EditForm Model="@product" OnValidSubmit="@HandleValidSubmit">
+            <EditForm Model="@product" OnValidSubmit="@HandleValidSubmit" FormName="ProductEditForm">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 

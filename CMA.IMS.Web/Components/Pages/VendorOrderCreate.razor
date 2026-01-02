@@ -13,7 +13,7 @@
 
 <div class="row">
     <div class="col-md-8">
-        <EditForm Model="@vendorOrder" OnValidSubmit="@HandleValidSubmit">
+        <EditForm Model="@vendorOrder" OnValidSubmit="@HandleValidSubmit" FormName="VendorOrderCreateForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
