@@ -27,20 +27,33 @@ public static class DbInitializer
             }
         }
 
-        // Seed admin user
-        if (await userManager.FindByEmailAsync("admin@cma.com") == null)
+        // Seed users for all roles
+        var usersToSeed = new Dictionary<string, (string email, string password, string role)>
         {
-            var adminUser = new IdentityUser
-            {
-                UserName = "admin@cma.com",
-                Email = "admin@cma.com",
-                EmailConfirmed = true
-            };
+            { "admin", ("admin@cma.com", "Admin@123", "Admin") },
+            { "manager", ("manager@cma.com", "Manager@123", "Manager") },
+            { "supervisor", ("supervisor@cma.com", "Supervisor@123", "Supervisor") },
+            { "salesagent", ("salesagent@cma.com", "SalesAgent@123", "SalesAgent") },
+            { "accountant", ("accountant@cma.com", "Accountant@123", "Accountant") },
+            { "dealer", ("dealer@cma.com", "Dealer@123", "Dealer") }
+        };
 
-            var result = await userManager.CreateAsync(adminUser, "Admin@123");
-            if (result.Succeeded)
+        foreach (var userInfo in usersToSeed)
+        {
+            if (await userManager.FindByEmailAsync(userInfo.Value.email) == null)
             {
-                await userManager.AddToRoleAsync(adminUser, "Admin");
+                var user = new IdentityUser
+                {
+                    UserName = userInfo.Value.email,
+                    Email = userInfo.Value.email,
+                    EmailConfirmed = true
+                };
+
+                var result = await userManager.CreateAsync(user, userInfo.Value.password);
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(user, userInfo.Value.role);
+                }
             }
         }
 

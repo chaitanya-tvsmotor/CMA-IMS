@@ -1,6 +1,6 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">CMA Inventory Management</a>
+        <a class="navbar-brand" href="">Classic Marketing Agencies</a>
     </div>
 </div>
 
@@ -49,8 +49,13 @@
             </div>
         </AuthorizeView>
 
-        <!-- Supervisor Menu -->
+        <!-- Supervisor Menu - Same as Manager but Vendors and Purchase Orders are view-only -->
         <AuthorizeView Roles="Supervisor">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
+                </NavLink>
+            </div>
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="products">
                     <span class="bi bi-box-seam" aria-hidden="true"></span> Products
@@ -74,6 +79,26 @@
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="vendor-orders">
                     <span class="bi bi-truck" aria-hidden="true"></span> Purchase Orders
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="dealers">
+                    <span class="bi bi-people-fill" aria-hidden="true"></span> Dealers
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="categories">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Categories
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="brands">
+                    <span class="bi bi-tag" aria-hidden="true"></span> Brands
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="vendors">
+                    <span class="bi bi-shop-window" aria-hidden="true"></span> Vendors
                 </NavLink>
             </div>
         </AuthorizeView>

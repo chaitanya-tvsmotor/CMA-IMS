@@ -10,9 +10,11 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>Vendors</h1>
-    <a href="/vendors/create" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Add New Vendor
-    </a>
+    <AuthorizeView Roles="Admin,Manager">
+        <a href="/vendors/create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add New Vendor
+        </a>
+    </AuthorizeView>
 </div>
 
 @if (vendors == null)
@@ -56,12 +58,19 @@ else
                             }
                         </td>
                         <td>
-                            <a href="/vendors/edit/@vendor.Id" class="btn btn-sm btn-warning">
-                                <i class="bi bi-pencil"></i> Edit
-                            </a>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteVendor(vendor.Id)">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
+                            <AuthorizeView Roles="Admin,Manager">
+                                <a href="/vendors/edit/@vendor.Id" class="btn btn-sm btn-warning">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteVendor(vendor.Id)">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </AuthorizeView>
+                            <AuthorizeView Roles="Supervisor,Accountant">
+                                <a href="/vendors/edit/@vendor.Id" class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </AuthorizeView>
                         </td>
                     </tr>
                 }
