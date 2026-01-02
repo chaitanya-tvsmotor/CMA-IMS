@@ -8,41 +8,40 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
-            </NavLink>
-        </div>
-
-        <AuthorizeView Roles="Admin,Manager,Supervisor">
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="categories">
-                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Categories
-                </NavLink>
-            </div>
-
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="brands">
-                    <span class="bi bi-tag" aria-hidden="true"></span> Brands
-                </NavLink>
-            </div>
-
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="vendors">
-                    <span class="bi bi-shop-window" aria-hidden="true"></span> Vendors
-                </NavLink>
-            </div>
+        
+        <!-- Public/Anonymous Users - Always visible -->
+        <AuthorizeView>
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="catalog">
+                        <span class="bi bi-box-seam" aria-hidden="true"></span> Products
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="about">
+                        <span class="bi bi-info-circle" aria-hidden="true"></span> About Us
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="contact">
+                        <span class="bi bi-telephone" aria-hidden="true"></span> Contact Us
+                    </NavLink>
+                </div>
+            </NotAuthorized>
         </AuthorizeView>
 
-        <AuthorizeView Roles="Admin,Manager,Supervisor,SalesAgent,Accountant">
+        <!-- Sales Agent Menu -->
+        <AuthorizeView Roles="SalesAgent">
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="products">
                     <span class="bi bi-box-seam" aria-hidden="true"></span> Products
                 </NavLink>
             </div>
-        </AuthorizeView>
-
-        <AuthorizeView Roles="Admin,Manager,Supervisor,SalesAgent">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="orders">
+                    <span class="bi bi-cart-fill" aria-hidden="true"></span> Orders
+                </NavLink>
+            </div>
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="dealers">
                     <span class="bi bi-people-fill" aria-hidden="true"></span> Dealers
@@ -50,32 +49,168 @@
             </div>
         </AuthorizeView>
 
-        <AuthorizeView Roles="Admin,Manager,Supervisor">
+        <!-- Supervisor Menu -->
+        <AuthorizeView Roles="Supervisor">
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="employees">
-                    <span class="bi bi-person-vcard" aria-hidden="true"></span> Employees
+                <NavLink class="nav-link" href="products">
+                    <span class="bi bi-box-seam" aria-hidden="true"></span> Products
                 </NavLink>
             </div>
-
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="vehicles">
-                    <span class="bi bi-truck-front-fill" aria-hidden="true"></span> Vehicles
-                </NavLink>
-            </div>
-        </AuthorizeView>
-
-        <AuthorizeView Roles="Admin,Manager,Supervisor,SalesAgent,Accountant">
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="orders">
                     <span class="bi bi-cart-fill" aria-hidden="true"></span> Orders
                 </NavLink>
             </div>
-        </AuthorizeView>
-
-        <AuthorizeView Roles="Admin,Manager">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="employees">
+                    <span class="bi bi-person-vcard" aria-hidden="true"></span> Employees
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="vehicles">
+                    <span class="bi bi-truck-front-fill" aria-hidden="true"></span> Vehicles
+                </NavLink>
+            </div>
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="vendor-orders">
                     <span class="bi bi-truck" aria-hidden="true"></span> Purchase Orders
+                </NavLink>
+            </div>
+        </AuthorizeView>
+
+        <!-- Accountant Menu - Same as Supervisor but read-only -->
+        <AuthorizeView Roles="Accountant">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="products">
+                    <span class="bi bi-box-seam" aria-hidden="true"></span> Products
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="orders">
+                    <span class="bi bi-cart-fill" aria-hidden="true"></span> Orders
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="employees">
+                    <span class="bi bi-person-vcard" aria-hidden="true"></span> Employees
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="vehicles">
+                    <span class="bi bi-truck-front-fill" aria-hidden="true"></span> Vehicles
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="vendor-orders">
+                    <span class="bi bi-truck" aria-hidden="true"></span> Purchase Orders
+                </NavLink>
+            </div>
+        </AuthorizeView>
+
+        <!-- Manager Menu - Full access -->
+        <AuthorizeView Roles="Manager">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="products">
+                    <span class="bi bi-box-seam" aria-hidden="true"></span> Products
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="orders">
+                    <span class="bi bi-cart-fill" aria-hidden="true"></span> Orders
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="employees">
+                    <span class="bi bi-person-vcard" aria-hidden="true"></span> Employees
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="vehicles">
+                    <span class="bi bi-truck-front-fill" aria-hidden="true"></span> Vehicles
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="vendor-orders">
+                    <span class="bi bi-truck" aria-hidden="true"></span> Purchase Orders
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="dealers">
+                    <span class="bi bi-people-fill" aria-hidden="true"></span> Dealers
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="categories">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Categories
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="brands">
+                    <span class="bi bi-tag" aria-hidden="true"></span> Brands
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="vendors">
+                    <span class="bi bi-shop-window" aria-hidden="true"></span> Vendors
+                </NavLink>
+            </div>
+        </AuthorizeView>
+
+        <!-- Admin Menu - Full access -->
+        <AuthorizeView Roles="Admin">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="products">
+                    <span class="bi bi-box-seam" aria-hidden="true"></span> Products
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="orders">
+                    <span class="bi bi-cart-fill" aria-hidden="true"></span> Orders
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="employees">
+                    <span class="bi bi-person-vcard" aria-hidden="true"></span> Employees
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="vehicles">
+                    <span class="bi bi-truck-front-fill" aria-hidden="true"></span> Vehicles
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="vendor-orders">
+                    <span class="bi bi-truck" aria-hidden="true"></span> Purchase Orders
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="dealers">
+                    <span class="bi bi-people-fill" aria-hidden="true"></span> Dealers
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="categories">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Categories
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="brands">
+                    <span class="bi bi-tag" aria-hidden="true"></span> Brands
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="vendors">
+                    <span class="bi bi-shop-window" aria-hidden="true"></span> Vendors
                 </NavLink>
             </div>
         </AuthorizeView>
