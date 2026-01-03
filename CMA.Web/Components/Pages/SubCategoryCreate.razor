@@ -1,0 +1,117 @@
+@page "/subcategories/create"
+@rendermode InteractiveServer
+@using CMA.Core.Entities
+@using CMA.Infrastructure.Data
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Manager,Supervisor")]
+
+<PageTitle>Create Sub Category - Classic Marketing Agencies</PageTitle>
+
+<h1>Create Sub Category</h1>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @errorMessage
+        <button type="button" class="btn-close" @onclick="@(() => errorMessage = null)"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <EditForm Model="@subcategory" OnValidSubmit="@HandleValidSubmit" FormName="SubCategoryCreateForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                <InputSelect id="category" class="form-select" @bind-Value="subcategory.CategoryId" required>
+                    <option value="0">-- Select Category --</option>
+                    @foreach (var category in categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                <InputText id="name" class="form-control" @bind-Value="subcategory.Name" required />
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <InputTextArea id="description" class="form-control" @bind-Value="subcategory.Description" rows="3" />
+            </div>
+
+            <div class="mb-3 form-check">
+                <InputCheckbox id="isActive" class="form-check-input" @bind-Value="subcategory.IsActive" />
+                <label class="form-check-label" for="isActive">
+                    Active
+                </label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Create Sub Category
+                </button>
+                <button type="button" class="btn btn-secondary" @onclick="CloseWindow">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private SubCategory subcategory { get; set; } = new SubCategory { IsActive = true };
+    private List<Category> categories = new();
+    private string? errorMessage = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            categories = await DbContext.Categories
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.Name)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading categories: {ex.Message}";
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            if (subcategory.CategoryId == 0)
+            {
+                errorMessage = "Please select a category.";
+                return;
+            }
+
+            DbContext.SubCategories.Add(subcategory);
+            await DbContext.SaveChangesAsync();
+            
+            // Close the window if opened in new tab
+            CloseWindow();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error creating sub category: {ex.Message}";
+        }
+    }
+
+    private void CloseWindow()
+    {
+        Navigation.NavigateTo("/products/create");
+    }
+}
