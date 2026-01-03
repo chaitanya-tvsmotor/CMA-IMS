@@ -1,0 +1,79 @@
+@page "/brands/edit/{id:int}"
+@using CMA.Core.Entities
+@using CMA.Infrastructure.Data
+@using Microsoft.AspNetCore.Authorization
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Manager,Supervisor")]
+
+<PageTitle>Edit Brand - CMA</PageTitle>
+
+<h1>Edit Brand</h1>
+
+@if (brand == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-6">
+            <EditForm Model="@brand" OnValidSubmit="@HandleValidSubmit" FormName="BrandEditForm">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Brand Name *</label>
+                    <InputText id="name" class="form-control" @bind-Value="brand.Name" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <InputTextArea id="description" class="form-control" @bind-Value="brand.Description" rows="3" />
+                </div>
+
+                <div class="mb-3 form-check">
+                    <InputCheckbox id="isActive" class="form-check-input" @bind-Value="brand.IsActive" />
+                    <label class="form-check-label" for="isActive">
+                        Active
+                    </label>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Update
+                    </button>
+                    <a href="/brands" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Brand? brand;
+
+    protected override async Task OnInitializedAsync()
+    {
+        brand = await DbContext.Brands.FindAsync(Id);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            DbContext.Brands.Update(brand!);
+            await DbContext.SaveChangesAsync();
+            Navigation.NavigateTo("/brands");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating brand: {ex.Message}");
+        }
+    }
+}

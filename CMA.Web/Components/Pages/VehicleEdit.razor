@@ -1,0 +1,119 @@
+@page "/vehicles/edit/{id:int}"
+@using CMA.Core.Entities
+@using CMA.Infrastructure.Data
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Manager,Supervisor")]
+
+<PageTitle>Edit Vehicle - CMA</PageTitle>
+
+<h1>Edit Vehicle</h1>
+
+@if (vehicle == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-8">
+            <EditForm Model="@vehicle" OnValidSubmit="@HandleValidSubmit" FormName="VehicleEditForm">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="vehicleNumber" class="form-label">Vehicle Number *</label>
+                        <InputText id="vehicleNumber" class="form-control" @bind-Value="vehicle.VehicleNumber" required />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="vehicleType" class="form-label">Vehicle Type *</label>
+                        <InputText id="vehicleType" class="form-control" @bind-Value="vehicle.VehicleType" required />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="make" class="form-label">Make *</label>
+                        <InputText id="make" class="form-control" @bind-Value="vehicle.Make" required />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="model" class="form-label">Model *</label>
+                        <InputText id="model" class="form-control" @bind-Value="vehicle.Model" required />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="year" class="form-label">Year *</label>
+                        <InputNumber id="year" class="form-control" @bind-Value="vehicle.Year" required />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="driver" class="form-label">Assigned Driver</label>
+                        <InputSelect id="driver" class="form-select" @bind-Value="vehicle.AssignedDriverId">
+                            <option value="">-- Select Driver --</option>
+                            @foreach (var driver in drivers)
+                            {
+                                <option value="@driver.Id">@driver.Name (@driver.EmployeeCode)</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <InputCheckbox id="isActive" class="form-check-input" @bind-Value="vehicle.IsActive" />
+                    <label class="form-check-label" for="isActive">
+                        Active
+                    </label>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Update
+                    </button>
+                    <a href="/vehicles" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                    <a href="/vehicles/documents/@Id" class="btn btn-info">
+                        <i class="bi bi-file-earmark-text"></i> Documents
+                    </a>
+                    <a href="/vehicles/maintenance/@Id" class="btn btn-warning">
+                        <i class="bi bi-wrench"></i> Maintenance
+                    </a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Vehicle? vehicle;
+    private List<Employee> drivers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        vehicle = await DbContext.Vehicles.FindAsync(Id);
+        drivers = await DbContext.Employees
+            .Where(e => e.EmployeeType == EmployeeType.Driver && e.IsActive)
+            .ToListAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            DbContext.Vehicles.Update(vehicle!);
+            await DbContext.SaveChangesAsync();
+            Navigation.NavigateTo("/vehicles");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating vehicle: {ex.Message}");
+        }
+    }
+}

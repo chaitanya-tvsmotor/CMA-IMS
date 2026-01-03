@@ -1,0 +1,67 @@
+@page "/vendors/create"
+@using CMA.Core.Entities
+@using CMA.Core.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@inject IRepository<Vendor> VendorRepository
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Manager")]
+
+<PageTitle>Create Vendor - CMA IMS</PageTitle>
+
+<h1>Create Vendor</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <EditForm Model="@vendor" OnValidSubmit="@HandleValidSubmit" FormName="VendorCreateForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <InputText id="name" class="form-control" @bind-Value="vendor.Name" />
+            </div>
+
+            <div class="mb-3">
+                <label for="contactPerson" class="form-label">Contact Person</label>
+                <InputText id="contactPerson" class="form-control" @bind-Value="vendor.ContactPerson" />
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <InputText id="email" type="email" class="form-control" @bind-Value="vendor.Email" />
+            </div>
+
+            <div class="mb-3">
+                <label for="phone" class="form-label">Phone</label>
+                <InputText id="phone" class="form-control" @bind-Value="vendor.Phone" />
+            </div>
+
+            <div class="mb-3">
+                <label for="address" class="form-label">Address</label>
+                <InputTextArea id="address" class="form-control" @bind-Value="vendor.Address" rows="3" />
+            </div>
+
+            <div class="mb-3 form-check">
+                <InputCheckbox id="isActive" class="form-check-input" @bind-Value="vendor.IsActive" />
+                <label class="form-check-label" for="isActive">
+                    Active
+                </label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="/vendors" class="btn btn-secondary">Cancel</a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private Vendor vendor = new Vendor { IsActive = true };
+
+    private async Task HandleValidSubmit()
+    {
+        await VendorRepository.AddAsync(vendor);
+        Navigation.NavigateTo("/vendors");
+    }
+}

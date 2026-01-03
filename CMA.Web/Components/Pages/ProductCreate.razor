@@ -1,0 +1,289 @@
+@page "/products/create"
+@rendermode InteractiveServer
+@using CMA.Core.Entities
+@using CMA.Infrastructure.Data
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Manager,Supervisor")]
+
+<PageTitle>Create Product - Classic Marketing Agencies</PageTitle>
+
+<h1>Create Product</h1>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @errorMessage
+        <button type="button" class="btn-close" @onclick="@(() => errorMessage = null)"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-10">
+        <EditForm Model="@product" OnValidSubmit="@HandleValidSubmit" FormName="ProductCreateForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                    <InputText id="name" class="form-control" @bind-Value="product.Name" required />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="sku" class="form-label">SKU</label>
+                    <InputText id="sku" class="form-control" @bind-Value="product.SKU" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <InputTextArea id="description" class="form-control" @bind-Value="product.Description" rows="3" />
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <InputSelect id="category" class="form-select" @bind-Value="product.CategoryId" required>
+                            <option value="0">-- Select Category --</option>
+                            @foreach (var category in categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        </InputSelect>
+                        <a href="/categories/create" class="btn btn-outline-primary" target="_blank" title="Add New Category">
+                            <i class="bi bi-plus-circle"></i>
+                        </a>
+                    </div>
+                    <ValidationMessage For="@(() => product.CategoryId)" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="subcategory" class="form-label">Sub Category</label>
+                    <div class="input-group">
+                        <InputSelect id="subcategory" class="form-select" @bind-Value="product.SubCategoryId">
+                            <option value="">-- Select Sub Category (Optional) --</option>
+                            @foreach (var subcategory in subcategories)
+                            {
+                                <option value="@subcategory.Id">@subcategory.Name</option>
+                            }
+                        </InputSelect>
+                        <a href="/subcategories/create" class="btn btn-outline-primary" target="_blank" title="Add New Sub Category">
+                            <i class="bi bi-plus-circle"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="brand" class="form-label">Brand</label>
+                    <div class="input-group">
+                        <InputSelect id="brand" class="form-select" @bind-Value="product.BrandId">
+                            <option value="">-- Select Brand (Optional) --</option>
+                            @foreach (var brand in brands)
+                            {
+                                <option value="@brand.Id">@brand.Name</option>
+                            }
+                        </InputSelect>
+                        <a href="/brands/create" class="btn btn-outline-primary" target="_blank" title="Add New Brand">
+                            <i class="bi bi-plus-circle"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="unitPrice" class="form-label">Unit Price <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <InputNumber id="unitPrice" class="form-control" @bind-Value="product.UnitPrice" required />
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="mt-4 mb-3">Dimensions & Weight</h5>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="length" class="form-label">Length (cm)</label>
+                    <InputNumber id="length" class="form-control" @bind-Value="product.Length" />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="width" class="form-label">Width (cm)</label>
+                    <InputNumber id="width" class="form-control" @bind-Value="product.Width" />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="height" class="form-label">Height (cm)</label>
+                    <InputNumber id="height" class="form-control" @bind-Value="product.Height" />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="weight" class="form-label">Weight (kg)</label>
+                    <InputNumber id="weight" class="form-control" @bind-Value="product.Weight" />
+                </div>
+            </div>
+
+            <h5 class="mt-4 mb-3">Inventory</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="stockQuantity" class="form-label">Stock Quantity</label>
+                    <InputNumber id="stockQuantity" class="form-control" @bind-Value="product.StockQuantity" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="reorderLevel" class="form-label">Reorder Level</label>
+                    <InputNumber id="reorderLevel" class="form-control" @bind-Value="product.ReorderLevel" />
+                </div>
+            </div>
+
+            <h5 class="mt-4 mb-3">Sizes (Optional)</h5>
+            <div class="mb-3">
+                <label class="form-label">Select Available Sizes</label>
+                <div class="input-group mb-2">
+                    <select class="form-select" @bind="selectedSizeId">
+                        <option value="0">-- Select Size --</option>
+                        @foreach (var size in sizes.Where(s => !selectedSizeIds.Contains(s.Id)))
+                        {
+                            <option value="@size.Id">@size.Name</option>
+                        }
+                    </select>
+                    <button type="button" class="btn btn-primary" @onclick="AddSize">Add Size</button>
+                    <a href="/sizes/create" class="btn btn-outline-primary" target="_blank" title="Add New Size">
+                        <i class="bi bi-plus-circle"></i>
+                    </a>
+                </div>
+                
+                @if (selectedSizeIds.Any())
+                {
+                    <div class="mt-2">
+                        <strong>Selected Sizes:</strong>
+                        <div class="d-flex flex-wrap gap-2 mt-1">
+                            @foreach (var sizeId in selectedSizeIds)
+                            {
+                                var sizeName = sizes.FirstOrDefault(s => s.Id == sizeId)?.Name ?? "";
+                                <span class="badge bg-info">
+                                    @sizeName
+                                    <button type="button" class="btn-close btn-close-white ms-2" style="font-size: 0.7rem;" 
+                                            @onclick="@(() => RemoveSize(sizeId))"></button>
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="mb-3 form-check">
+                <InputCheckbox id="isActive" class="form-check-input" @bind-Value="product.IsActive" />
+                <label class="form-check-label" for="isActive">
+                    Active
+                </label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Create Product
+                </button>
+                <a href="/products" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Product product { get; set; } = new Product { IsActive = true, StockQuantity = 0, ReorderLevel = 10 };
+    
+    private List<Category> categories = new();
+    private List<SubCategory> subcategories = new();
+    private List<Brand> brands = new();
+    private List<Size> sizes = new();
+    private List<int> selectedSizeIds = new();
+    private int selectedSizeId = 0;
+    private string? errorMessage = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            categories = await DbContext.Categories
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.Name)
+                .AsNoTracking()
+                .ToListAsync();
+                
+            subcategories = await DbContext.SubCategories
+                .Where(sc => sc.IsActive)
+                .OrderBy(sc => sc.Name)
+                .AsNoTracking()
+                .ToListAsync();
+                
+            brands = await DbContext.Brands
+                .Where(b => b.IsActive)
+                .OrderBy(b => b.Name)
+                .AsNoTracking()
+                .ToListAsync();
+                
+            sizes = await DbContext.Sizes
+                .Where(s => s.IsActive)
+                .OrderBy(s => s.Name)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+        }
+    }
+
+    private void AddSize()
+    {
+        if (selectedSizeId > 0 && !selectedSizeIds.Contains(selectedSizeId))
+        {
+            selectedSizeIds.Add(selectedSizeId);
+            selectedSizeId = 0;
+        }
+    }
+
+    private void RemoveSize(int sizeId)
+    {
+        selectedSizeIds.Remove(sizeId);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            // Validate CategoryId is selected
+            if (product.CategoryId == 0)
+            {
+                errorMessage = "Please select a category.";
+                return;
+            }
+            
+            // Add the product
+            DbContext.Products.Add(product);
+            await DbContext.SaveChangesAsync();
+            
+            // Add selected sizes as ProductSize relationships
+            if (selectedSizeIds.Any())
+            {
+                foreach (var sizeId in selectedSizeIds)
+                {
+                    var productSize = new ProductSize
+                    {
+                        ProductId = product.Id,
+                        SizeId = sizeId,
+                        StockQuantity = 0
+                    };
+                    DbContext.ProductSizes.Add(productSize);
+                }
+                await DbContext.SaveChangesAsync();
+            }
+            
+            Navigation.NavigateTo("/products");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error creating product: {ex.Message}";
+        }
+    }
+}
